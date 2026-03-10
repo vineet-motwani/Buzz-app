@@ -1,0 +1,13 @@
+node_modules
+# Keep environment variables out of version control
+.env
+build/
+.vscode
+# AWS Artifacts
+.aws/
+.amplify/
+amplify/
+.serverless/
+serverless.yml
+aws-exports.js
+aws-config.js
