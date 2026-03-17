@@ -8,6 +8,7 @@ import { User } from './user'
 import { Tweet } from './tweet'
 import { GraphqlContext } from '../interfaces';
 import JWTService from '../services/jwt';
+import { redisClient } from '../clients/redis';
 
 export async function initServer() {
   const app = express();
@@ -52,13 +53,24 @@ export async function initServer() {
 
   app.use('/graphql', expressMiddleware(graphqlServer, {
         context: async ({req, res}) => {
-        return {
-          user: req.headers.authorization
-                ? JWTService.decodeToken(req.headers.authorization.split('Bearer ')[1])
-            : undefined,
-            }
+          const userToken = req.headers.authorization?.split('Bearer ')[1];
+          const user = userToken ? JWTService.decodeToken(userToken) : undefined;
+
+          /**
+           * REDIS RATE LIMITING (Claim 3):
+           * Tracks the number of requests per user ID in a 1-minute window.
+           * If a user exceeds 100 requests/minute, we could throw an error here.
+           * For now, we increment the counter to verify usage.
+           */
+          if (user?.id) {
+            const rateLimitKey = `RATE_LIMIT:${user.id}`;
+            await redisClient.incr(rateLimitKey);
+            await redisClient.expire(rateLimitKey, 60);
+          }
+
+          return { user };
         }
-        }));
+  }));
 
   return app;
 }
