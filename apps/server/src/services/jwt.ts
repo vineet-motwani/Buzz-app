@@ -3,7 +3,7 @@ import { User } from "@prisma/client";
 import { JWTUser } from "../interfaces";
 
 
-const JWT_SECRET = "vinee@secret";
+const JWT_SECRET = process.env.JWT_SECRET;
 
 export default class JWTService {
     public static generateTokenForUser(user: User) {
@@ -16,7 +16,11 @@ export default class JWTService {
     }
     public static decodeToken(token: string) {
         try {
-            return JWT.verify(token, JWT_SECRET) as JWTUser;
+            const decoded = JWT.verify(token, JWT_SECRET as string) as any;
+            return {
+                id: decoded.id,
+                email: decoded.email,
+            } as JWTUser;
         } catch(error) {
             return null;
         }

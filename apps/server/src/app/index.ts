@@ -14,7 +14,10 @@ export async function initServer() {
   const app = express();
 
   app.use(bodyParser.json());
-  app.use(cors());
+  app.use(cors({
+    origin: ['http://localhost:3000',"https://buzz.vineet-motwani.cv"],
+    credentials: true,
+  }));
 
   app.get("/", (req, res) =>
     res.status(200).json({ message: "Hello from Buzz!!" })
