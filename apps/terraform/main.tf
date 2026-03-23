@@ -1,57 +1,73 @@
-provider "aws" {
-  region = var.aws_region
+provider "google" {
+  project = var.gcp_project_id
+  region  = var.gcp_region
+  zone    = var.gcp_zone
 }
 
-resource "aws_security_group" "buzz_sg" {
-  name        = "buzz-app-sg"
-  description = "Allow inbound traffic for Buzz App"
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = [var.ssh_allowed_cidr] # Restrict SSH access to a specific CIDR block.
-  }
-
-  ingress {
-    from_port   = 8000
-    to_port     = 8000
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+resource "google_compute_network" "vpc_network" {
+  name                    = "buzz-network"
+  auto_create_subnetworks = true
 }
 
-resource "aws_instance" "buzz_server" {
-  ami           = "ami-022d03f649d12a49d" # Ubuntu 22.04 LTS for ap-south-1 (Mumbai)
-  instance_type = "t2.micro"
-  key_name      = var.key_name
+resource "google_compute_firewall" "allow_ssh" {
+  name    = "buzz-allow-ssh"
+  network = google_compute_network.vpc_network.name
 
-  vpc_security_group_ids = [aws_security_group.buzz_sg.id]
-
-  tags = {
-    Name = "Buzz-Backend-Server"
+  allow {
+    protocol = "tcp"
+    ports    = ["22"]
   }
+
+  source_ranges = [var.ssh_allowed_cidr]
 }
 
-resource "aws_budgets_budget" "budget_limit" {
-  name              = "monthly-budget-limit"
-  budget_type       = "COST"
-  limit_amount      = "1"
-  limit_unit        = "USD"
-  time_unit         = "MONTHLY"
+resource "google_compute_firewall" "allow_app" {
+  name    = "buzz-allow-app"
+  network = google_compute_network.vpc_network.name
 
-  notification {
-    comparison_operator        = "GREATER_THAN"
-    threshold                  = 100
-    threshold_type             = "PERCENTAGE"
-    notification_type          = "ACTUAL"
-    subscriber_email_addresses = [var.alert_email]
+  allow {
+    protocol = "tcp"
+    ports    = ["8000"]
   }
+
+  source_ranges = [var.app_allowed_cidr]
+}
+
+resource "google_compute_instance" "buzz_server" {
+  name         = "buzz-backend-server"
+  machine_type = "e2-micro" # Permanent Free Tier Eligible
+  zone         = var.gcp_zone
+
+  boot_disk {
+    initialize_params {
+      image = "ubuntu-os-cloud/ubuntu-2204-lts"
+      size  = 30 # 30 GB standard persistent disk is permanently free
+      type  = "pd-standard"
+    }
+  }
+
+  network_interface {
+    network = google_compute_network.vpc_network.name
+    access_config {
+      # This block assigns a public IP address to the VM
+    }
+  }
+
+  metadata = {
+    ssh-keys = "${var.ssh_user}:${file(var.ssh_pub_key_path)}"
+  }
+
+  # This script runs ONCE when the server boots up to automatically install Node.js
+  metadata_startup_script = <<-EOF
+    #!/bin/bash
+    apt-get update -y
+    # Install Node.js 20
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+    apt-get install -y nodejs git
+
+    # Install PM2 globally to run the server in the background
+    npm install -g pm2
+  EOF
+
+  tags = ["buzz-backend"]
 }

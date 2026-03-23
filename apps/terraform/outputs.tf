@@ -1,4 +1,4 @@
 output "instance_public_ip" {
-  description = "Public IP address of the EC2 instance"
-  value       = aws_instance.buzz_server.public_ip
+  description = "Public IP address of the GCP instance"
+  value       = google_compute_instance.buzz_server.network_interface[0].access_config[0].nat_ip
 }
