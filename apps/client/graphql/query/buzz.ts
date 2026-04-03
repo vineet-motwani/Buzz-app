@@ -1,10 +1,8 @@
 import { graphql } from "@/gql";
 
-export const getAllTweetsQuery = graphql(`
-    #graphql
-    
-    query GetAllTweets {
-        getAllTweets {
+export const getAllBuzzsQuery = graphql(`
+    query GetAllBuzzs {
+        getAllBuzzs {
             id
             content
             imageURL
@@ -14,12 +12,14 @@ export const getAllTweetsQuery = graphql(`
                 lastName
                 profileImageURL
             }
+            hasLiked
+            hasBookmarked
         }
     }
 `);
 
-export const getSignedURLForTweetQuery = graphql(`
+export const getSignedURLForBuzzQuery = graphql(`
   query GetSignedURL($imageName: String!, $imageType: String!) {
-    getSignedURLForTweet(imageName: $imageName, imageType: $imageType)
+    getSignedURLForBuzz(imageName: $imageName, imageType: $imageType)
   }
 `);

@@ -11,6 +11,7 @@ import { graphqlClient } from "@/clients/api";
 import { verifyUserGoogleTokenQuery } from "@/graphql/query/user";
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
+import { useRouter } from "next/router";
 
 interface BuzzSidebarButton {
   title: string;
@@ -25,6 +26,7 @@ interface BuzzLayoutProps {
 const BuzzLayout: React.FC<BuzzLayoutProps> = (props) => {
   const { user } = useCurrentUser();
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   const sidebarMenuItems: BuzzSidebarButton[] = useMemo(
     () => [
@@ -36,40 +38,25 @@ const BuzzLayout: React.FC<BuzzLayoutProps> = (props) => {
       {
         title: "Explore",
         icon: <BiHash />,
-        link: "/",
+        link: "/explore",
       },
       {
         title: "Notifications",
         icon: <BsBell />,
-        link: "/",
-      },
-      {
-        title: "Messages",
-        icon: <BsEnvelope />,
-        link: "/",
+        link: "/notifications",
       },
       {
         title: "Bookmarks",
         icon: <BsBookmark />,
-        link: "/",
-      },
-      {
-        title: "Buzz Premium",
-        icon: <BiMoney />,
-        link: "/",
+        link: "/bookmarks",
       },
       {
         title: "Profile",
         icon: <BiUser />,
-        link: user?.id ? `/${user.id}` : "/",
-      },
-      {
-        title: "More Options",
-        icon: <SlOptions />,
-        link: "/",
+        link: user?.id ? `/${user.firstName}-${user.lastName}` : "/",
       },
     ],
-    [user?.id]
+    [user?.id, user?.firstName, user?.lastName]
   );
 
   const handleLoginWithGoogle = useCallback(
@@ -95,8 +82,8 @@ const BuzzLayout: React.FC<BuzzLayoutProps> = (props) => {
 
   return (
     <div>
-      <div className="grid grid-cols-12 h-screen w-screen sm:px-56">
-        <div className="col-span-2 sm:col-span-3 pt-1 flex sm:justify-end pr-4 relative">
+      <div className="grid grid-cols-12 w-screen sm:px-56">
+        <div className="col-span-2 sm:col-span-2 pt-1 flex sm:justify-end pr-4 relative sticky top-0 h-screen">
           <div>
             <Link href="/">
               <div className="text-2xl h-fit w-fit hover:bg-gray-800 rounded-full p-4 cursor-pointer transition-all">
@@ -105,25 +92,40 @@ const BuzzLayout: React.FC<BuzzLayoutProps> = (props) => {
             </Link>
             <div className="mt-1 text-xl pr-4">
               <ul>
-                {sidebarMenuItems.map((item) => (
-                  <li key={item.title}>
-                    <Link
-                      className="flex justify-start items-center gap-4 hover:bg-gray-800 rounded-full px-3 py-3 w-fit cursor-pointer mt-2"
-                      href={item.link}
-                    >
-                      <span className=" text-3xl">{item.icon}</span>
-                      <span className="hidden sm:inline">{item.title}</span>
-                    </Link>
-                  </li>
-                ))}
+                {sidebarMenuItems.map((item) => {
+                  const isActive =
+                    router.asPath === encodeURI(item.link) ||
+                    router.pathname === item.link;
+                  return (
+                    <li key={item.title}>
+                      <Link
+                        className="flex justify-start items-center gap-4 hover:bg-gray-800 rounded-full px-3 py-3 w-fit cursor-pointer mt-2"
+                        href={item.link}
+                      >
+                        <span className=" text-3xl">{item.icon}</span>
+                        <span
+                          className={`hidden sm:inline ${
+                            isActive ? "font-bold" : ""
+                          }`}
+                        >
+                          {item.title}
+                        </span>
+                      </Link>
+                    </li>
+                  );
+                })}
               </ul>
               <div className="mt-5 px-3">
-                <button className="hidden sm:block bg-[#1d9bf0] font-semibold text-lg py-2 px-4 rounded-full w-full">
-                  Buzz
-                </button>
-                <button className="block sm:hidden bg-[#1d9bf0] font-semibold text-lg py-2 px-4 rounded-full w-full">
-                  <SiBuzzfeed />
-                </button>
+                <Link href="/">
+                  <button className="hidden sm:block bg-[#1d9bf0] font-semibold text-lg py-2 px-4 rounded-full w-full">
+                    Buzz
+                  </button>
+                </Link>
+                <Link href="/">
+                  <button className="block sm:hidden bg-[#1d9bf0] font-semibold text-lg py-2 px-4 rounded-full w-full">
+                    <SiBuzzfeed />
+                  </button>
+                </Link>
               </div>
             </div>
           </div>
@@ -138,18 +140,18 @@ const BuzzLayout: React.FC<BuzzLayoutProps> = (props) => {
                   width={50}
                 />
               )}
-              <div className="hidden sm:block">
-                <h3 className="text-xl">
+              <div className="hidden sm:block min-w-[225px]">
+                <h3 className="text-base font-semibold whitespace-nowrap overflow-hidden text-ellipsis">
                   {user.firstName} {user.lastName}
                 </h3>
               </div>
             </div>
           )}
         </div>
-        <div className="col-span-10 sm:col-span-5 border-r-[1px] border-l-[1px] h-screen overflow-scroll border-gray-600">
+        <div className="col-span-10 sm:col-span-7 border-r-[1px] border-l-[1px] min-h-screen border-gray-600">
           {props.children}
         </div>
-        <div className="col-span-0 sm:col-span-3 p-5">
+        <div className="col-span-0 sm:col-span-3 p-5 sticky top-0 h-screen overflow-y-auto hidden sm:block">
           {!user ? (
             <div className="p-5 bg-slate-700 rounded-lg">
               <h1 className="my-2 text-2xl">New to Buzz?</h1>

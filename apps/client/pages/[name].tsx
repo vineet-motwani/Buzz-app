@@ -2,17 +2,17 @@ import { useRouter } from "next/router";
 import BuzzLayout from "@/components/FeedCard/Layout/BuzzLayout";
 import Image from "next/image";
 import { BsArrowLeftShort } from "react-icons/bs";
-import { useCurrentUser, useGetUserById, useFollowUser, useUnfollowUser } from "@/hooks/user";
+import { useCurrentUser, useGetUserByName, useFollowUser, useUnfollowUser } from "@/hooks/user";
 import FeedCard from "@/components/FeedCard";
-import { Tweet, User } from "@/gql/graphql";
+import { Buzz, User } from "@/gql/graphql";
 import { useCallback, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 const UserProfilePage = () => {
   const router = useRouter();
-  const { id } = router.query; // Get the ID from the URL
+  const { name } = router.query; // Get the name from the URL
   const { user: currentUser } = useCurrentUser();
-  const { user, isLoading } = useGetUserById(id as string);
+  const { user, isLoading } = useGetUserByName(name as string);
   const { mutate: followUser } = useFollowUser();
   const { mutate: unfollowUser } = useUnfollowUser();
   
@@ -63,7 +63,7 @@ const UserProfilePage = () => {
                 {user?.firstName} {user?.lastName}
               </h1>
               <h1 className="text-md font-bold text-slate-500">
-                {user?.tweets?.length} Buzzes
+                {user?.buzzs?.length} Buzzes
               </h1>
             </div>
           </nav>
@@ -107,8 +107,8 @@ const UserProfilePage = () => {
             </div>
           </div>
           <div>
-            {user?.tweets?.map((tweet) => (
-              <FeedCard data={tweet as Tweet} key={tweet?.id} />
+            {user?.buzzs?.map((buzz) => (
+              <FeedCard data={buzz as Buzz} key={buzz?.id} />
             ))}
           </div>
         </div>

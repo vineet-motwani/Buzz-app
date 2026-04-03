@@ -1,6 +1,6 @@
 import { graphqlClient } from "@/clients/api";
 import { followUserMutation, unfollowUserMutation } from "@/graphql/mutations/user";
-import { getCurrentUserQuery, getUserByIdQuery } from "@/graphql/query/user";
+import { getCurrentUserQuery, getUserByIdQuery, getUserByNameQuery } from "@/graphql/query/user";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
@@ -21,6 +21,16 @@ export const useGetUserById = (id: string) => {
     });
 
     return { ...query, user: query.data?.getUserById };
+}
+
+export const useGetUserByName = (name: string) => {
+    const query = useQuery({
+        queryKey: ['user', name],
+        queryFn: () => graphqlClient.request(getUserByNameQuery, { name }),
+        enabled: !!name,
+    });
+
+    return { ...query, user: query.data?.getUserByName };
 }
 
 

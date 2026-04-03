@@ -1,82 +1,144 @@
 import { graphql } from "../../gql";
 
 export const verifyUserGoogleTokenQuery = graphql(`
-    #graphql
-    query VerifyUserGoogleToken($token: String!) {
-        verifyGoogleToken(token: $token)
-    }
+  query VerifyUserGoogleToken($token: String!) {
+    verifyGoogleToken(token: $token)
+  }
 `);
 
 export const getCurrentUserQuery = graphql(`
-    query GetCurrentUser {
-        getCurrentUser {
+  query GetCurrentUser {
+    getCurrentUser {
+      id
+      profileImageURL
+      email
+      firstName
+      lastName
+      recommendedUsers {
+        id
+        firstName
+        lastName
+        profileImageURL
+      }
+      followers {
+        id
+        firstName
+        lastName
+        profileImageURL
+      }
+      following {
+        id
+        firstName
+        lastName
+        profileImageURL
+      }
+      buzzs {
+        id
+        content
+        imageURL
+        author {
+          id
+          firstName
+          lastName
+          profileImageURL
+        }
+        hasLiked
+        hasBookmarked
+      }
+      notifications {
+        id
+        content
+        createdAt
+      }
+      bookmarks {
+        id
+        createdAt
+        buzz {
+          id
+          content
+          imageURL
+          author {
             id
-            profileImageURL
-            email
             firstName
             lastName
-            recommendedUsers {
-                id
-                firstName
-                lastName
-                profileImageURL
-            }
-            followers {
-                id
-                firstName
-                lastName
-                profileImageURL
-            }
-            following {
-                id
-                firstName
-                lastName
-                profileImageURL
-            }
-            tweets {
-                id
-                content
-                author {
-                id
-                firstName
-                lastName
-                profileImageURL
-                }
-            }
+            profileImageURL
+          }
+          hasLiked
+          hasBookmarked
         }
+      }
     }
+  }
 `);
 
 export const getUserByIdQuery = graphql(`
-    #graphql
-    query GetuserById($id: ID!) {
-        getUserById(id: $id) {
-            id
-            firstName
-            lastName
-            profileImageURL
-            followers {
-                id
-                firstName
-                lastName
-                profileImageURL
-            }
-            following {
-                id
-                firstName
-                lastName
-                profileImageURL
-            }
-            tweets {
-                content
-                id
-                author {
-                id
-                firstName
-                lastName
-                profileImageURL
-                }
-            }
+  query GetUserById($id: ID!) {
+    getUserById(id: $id) {
+      id
+      firstName
+      lastName
+      profileImageURL
+      followers {
+        id
+        firstName
+        lastName
+        profileImageURL
+      }
+      following {
+        id
+        firstName
+        lastName
+        profileImageURL
+      }
+      buzzs {
+        content
+        id
+        imageURL
+        author {
+          id
+          firstName
+          lastName
+          profileImageURL
         }
+        hasLiked
+        hasBookmarked
+      }
     }
+  }
+`);
+
+export const getUserByNameQuery = graphql(`
+  query GetUserByName($name: String!) {
+    getUserByName(name: $name) {
+      id
+      firstName
+      lastName
+      profileImageURL
+      followers {
+        id
+        firstName
+        lastName
+        profileImageURL
+      }
+      following {
+        id
+        firstName
+        lastName
+        profileImageURL
+      }
+      buzzs {
+        content
+        id
+        imageURL
+        author {
+          id
+          firstName
+          lastName
+          profileImageURL
+        }
+        hasLiked
+        hasBookmarked
+      }
+    }
+  }
 `);

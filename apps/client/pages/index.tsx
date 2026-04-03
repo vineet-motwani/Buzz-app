@@ -3,11 +3,11 @@ import Image from "next/image";
 import { BiImageAlt } from "react-icons/bi";
 import FeedCard from "@/components/FeedCard";
 import { useCurrentUser } from "@/hooks/user";
-import { useCreateTweet, useGetAllTweets } from "@/hooks/tweet";
-import { Tweet } from "@/gql/graphql";
+import { useCreateBuzz, useGetAllBuzzs } from "@/hooks/buzz";
+import { Buzz } from "@/gql/graphql";
 import BuzzLayout from "@/components/FeedCard/Layout/BuzzLayout";
 import { graphqlClient } from "@/clients/api";
-import { getSignedURLForTweetQuery } from "@/graphql/query/tweet";
+import { getSignedURLForBuzzQuery } from "@/graphql/query/buzz";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 
@@ -15,8 +15,8 @@ import { toast } from "react-hot-toast";
 
 export default function Home() {
   const { user } = useCurrentUser();
-  const { tweets = [] } = useGetAllTweets();
-  const { mutateAsync } = useCreateTweet();
+  const { buzzs = [] } = useGetAllBuzzs();
+  const { mutateAsync } = useCreateBuzz();
 
   const [content, setContent] = useState("");
   const [imageURL, setImageURL] = useState("");
@@ -24,24 +24,45 @@ export default function Home() {
   const handleInputChangeFile = useCallback((input: HTMLInputElement) => {
     return async (event: Event) => {
       event.preventDefault();
-      const file: File | null | undefined = input.files?.item(0);
-      if (!file) return;
+      const originalFile: File | null | undefined = input.files?.item(0);
+      if (!originalFile) return;
 
-      const { getSignedURLForTweet } = await graphqlClient.request(
-        getSignedURLForTweetQuery,
+      // Simple image compression for jpeg/webp
+      let fileToUpload = originalFile;
+      if (originalFile.type.startsWith("image/") && (originalFile.type === "image/jpeg" || originalFile.type === "image/webp")) {
+        try {
+          const bitmap = await createImageBitmap(originalFile);
+          const canvas = document.createElement("canvas");
+          canvas.width = bitmap.width;
+          canvas.height = bitmap.height;
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.drawImage(bitmap, 0, 0);
+            const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, originalFile.type, 0.25));
+            if (blob) {
+              fileToUpload = new File([blob], originalFile.name, { type: originalFile.type });
+            }
+          }
+        } catch (e) {
+          console.error("Compression failed, using original file");
+        }
+      }
+
+      const { getSignedURLForBuzz } = await graphqlClient.request(
+        getSignedURLForBuzzQuery,
         {
-          imageName: file.name,
-          imageType: file.type,
+          imageName: fileToUpload.name,
+          imageType: fileToUpload.type,
         }
       );
 
-      if (getSignedURLForTweet) {
-        toast.loading("Uploading Image...", { id: "2" });
-        await axios.put(getSignedURLForTweet, file, {
-          headers: { "Content-Type": file.type },
+      if (getSignedURLForBuzz) {
+        toast.loading("Uploading...", { id: "2" });
+        await axios.put(getSignedURLForBuzz, fileToUpload, {
+          headers: { "Content-Type": fileToUpload.type },
         });
         toast.success("Upload Complete!", { id: "2" });
-        const url = new URL(getSignedURLForTweet);
+        const url = new URL(getSignedURLForBuzz);
         const myFilePath = `${url.origin}${url.pathname}`;
         setImageURL(myFilePath);
       }
@@ -57,7 +78,7 @@ export default function Home() {
     input.click();
   }, [handleInputChangeFile]);
 
-  const handleCreateTweet = useCallback(async () => {
+  const handleCreateBuzz = useCallback(async () => {
     await mutateAsync({
       content,
       imageURL,
@@ -87,6 +108,12 @@ export default function Home() {
                 <textarea
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.ctrlKey && e.key === "Enter") {
+                      e.preventDefault();
+                      handleCreateBuzz();
+                    }
+                  }}
                   className="w-full bg-transparent text-xl px-3 border-b border-slate-700"
                   placeholder="Buzz about what's happening..."
                   rows={3}
@@ -94,15 +121,16 @@ export default function Home() {
                 {imageURL && (
                   <Image
                     src={imageURL}
-                    alt="tweet-image"
+                    alt="buzz-image"
                     width={300}
                     height={300}
+                    className="mt-3 max-h-64 object-contain"
                   />
                 )}
                 <div className="mt-2 flex justify-between items-center">
                   <BiImageAlt onClick={handleSelectImage} className="text-xl" />
                   <button
-                    onClick={handleCreateTweet}
+                    onClick={handleCreateBuzz}
                     className="bg-[#1d9bf0] font-semibold text-sm py-2 px-4 rounded-full"
                   >
                     Buzz
@@ -112,8 +140,8 @@ export default function Home() {
             </div>
           </div>
         </div>
-        {tweets?.map((tweet) =>
-          tweet ? <FeedCard key={tweet.id} data={tweet as Tweet} /> : null
+        {buzzs?.map((buzz) =>
+          buzz ? <FeedCard key={buzz.id} data={buzz as Buzz} /> : null
         )}
       </BuzzLayout>
     </div>
