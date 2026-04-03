@@ -26,7 +26,18 @@ model User {
   followers Follows[] @relation("follower")
   following Follows[] @relation("following")
 
-  tweets Tweet[]
+  buzzs Buzz[]
+  likes Like[]
+  notifications Notification[]
+  bookmarks Bookmark[]
+}
+
+model Notification {
+  id String @id @default(cuid())
+  user User @relation(fields: [userId], references: [id])
+  userId String
+  content String
+  createdAt DateTime @default(now())
 }
 
 model Follows {
@@ -39,7 +50,7 @@ model Follows {
   @@id([followerId, followingId])
 }
 
-model Tweet {
+model Buzz {
   id String @id @default(cuid())
   content String
   imageURL String? 
@@ -47,6 +58,31 @@ model Tweet {
   author User @relation(fields: [authorId], references: [id])
   authorId String
 
+  likes Like[]
+  bookmarks Bookmark[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Like {
+  id String @id @default(cuid())
+  buzz Buzz @relation(fields: [buzzId], references: [id])
+  buzzId String
+  user User @relation(fields: [userId], references: [id])
+  userId String
+  createdAt DateTime @default(now())
+
+  @@unique([buzzId, userId])
+}
+
+model Bookmark {
+  id String @id @default(cuid())
+  buzz Buzz @relation(fields: [buzzId], references: [id])
+  buzzId String
+  user User @relation(fields: [userId], references: [id])
+  userId String
+  createdAt DateTime @default(now())
+
+  @@unique([buzzId, userId])
 }

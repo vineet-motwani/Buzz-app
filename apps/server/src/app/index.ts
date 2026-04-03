@@ -5,7 +5,7 @@ import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
 
 import { User } from './user'
-import { Tweet } from './tweet'
+import { Buzz } from './buzz'
 import { GraphqlContext } from '../interfaces';
 import JWTService from '../services/jwt';
 import { redisClient } from '../clients/redis';
@@ -26,28 +26,28 @@ export async function initServer() {
   const graphqlServer = new ApolloServer<GraphqlContext>({
     typeDefs: `
        ${User.types}
-       ${Tweet.types}
+       ${Buzz.types}
 
         type Query {
             ${User.queries}
-            ${Tweet.queries}
+            ${Buzz.queries}
         }
 
         type Mutation {
-          ${Tweet.mutations}
+          ${Buzz.mutations}
           ${User.mutations}
         }
     `,
     resolvers: {
       Query: {
         ...User.resolvers.queries,
-        ...Tweet.resolvers.queries,
+        ...Buzz.resolvers.queries,
       },
       Mutation: {
-        ...Tweet.resolvers.mutations,
+        ...Buzz.resolvers.mutations,
         ...User.resolvers.mutations,
       },
-      ...Tweet.resolvers.extraResolvers,
+      ...Buzz.resolvers.extraResolvers,
       ...User.resolvers.extraResolvers,
     },
   });

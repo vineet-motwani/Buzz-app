@@ -1,4 +1,16 @@
 export const types = `#graphql
+    type Notification {
+        id: ID!
+        content: String!
+        createdAt: String!
+    }
+
+    type Bookmark {
+        id: ID!
+        buzz: Buzz!
+        createdAt: String!
+    }
+
     type User {
         id: ID!
         firstName: String!
@@ -11,6 +23,8 @@ export const types = `#graphql
 
         recommendedUsers: [User]
 
-        tweets: [Tweet]
+        buzzs: [Buzz]
+        notifications: [Notification]
+        bookmarks: [Bookmark]
     }
 `;

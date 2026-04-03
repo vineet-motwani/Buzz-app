@@ -1,15 +1,17 @@
 export const types = `#graphql
         
-    input CreateTweetData {
+    input CreateBuzzData {
         content: String!
         imageURL: String
     }
 
-    type Tweet {
+    type Buzz {
         id: ID!
         content: String!
         imageURL: String
         
         author: User!
+        hasLiked: Boolean
+        hasBookmarked: Boolean
     }
 `;

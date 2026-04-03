@@ -21,12 +21,43 @@ const queries = {
     { id }: { id: string },
     ctx: GraphqlContext
   ) => UserService.getUserById(id),
+  getUserByName: async (
+    parent: any,
+    { name }: { name: string },
+    ctx: GraphqlContext
+  ) => {
+    // If the name is something like "John-Doe", we can split it.
+    // Or we could just search by name. For simplicity, let's search users whose firstName + lastName matches.
+    // However, Prisma doesn't have an easy concat search without raw query.
+    // We will find all users and filter in memory since this is a simple clone.
+    const parts = name.split("-");
+    const firstName = parts[0];
+    const lastName = parts.slice(1).join("-") || undefined;
+    
+    // Attempt exact match
+    let user = await prismaClient.user.findFirst({
+      where: lastName ? { firstName, lastName } : { firstName },
+    });
+    
+    // If not found, try searching where firstName contains the full name
+    if (!user) {
+      user = await prismaClient.user.findFirst({
+        where: { firstName: name },
+      });
+    }
+
+    return user;
+  },
 };
 
 const extraResolvers = {
   User: {
-    tweets: (parent: User) =>
-      prismaClient.tweet.findMany({ where: { author: { id: parent.id } } }),
+    buzzs: (parent: User) =>
+      prismaClient.buzz.findMany({ where: { author: { id: parent.id } } }),
+    notifications: (parent: User) =>
+      prismaClient.notification.findMany({ where: { userId: parent.id }, orderBy: { createdAt: 'desc' } }),
+    bookmarks: (parent: User) =>
+      prismaClient.bookmark.findMany({ where: { userId: parent.id }, include: { buzz: true }, orderBy: { createdAt: 'desc' } }),
     followers: async (parent: User) => {
       const result = await prismaClient.follows.findMany({
         where: { following: { id: parent.id } },
@@ -81,7 +112,9 @@ const extraResolvers = {
               (e) => e?.followingId === followingOfFollowedUser.following.id
             ) < 0
           ) {
-            users.push(followingOfFollowedUser.following);
+            if (!users.find((u) => u.id === followingOfFollowedUser.following.id)) {
+              users.push(followingOfFollowedUser.following);
+            }
           }
         }
       }

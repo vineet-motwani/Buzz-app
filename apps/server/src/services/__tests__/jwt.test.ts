@@ -1,3 +1,4 @@
+process.env.JWT_SECRET = "test-secret";
 import JWTService from "../jwt";
 import { User } from "@prisma/client";
 
