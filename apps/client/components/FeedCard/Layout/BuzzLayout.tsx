@@ -82,15 +82,23 @@ const BuzzLayout: React.FC<BuzzLayoutProps> = (props) => {
 
   return (
     <div>
-      <div className="grid grid-cols-12 w-screen sm:px-56">
-        <div className="col-span-2 sm:col-span-2 pt-1 flex sm:justify-end pr-4 relative sticky top-0 h-screen">
+      {/*
+        Grid breakdown (Twitter-style collapse order):
+        xl  (≥1280): left 3 (icons+labels) | center 6 | right 3
+        lg  (≥1024): left 1 (icons only)    | center 8 | right 3   ← labels vanish first
+        md  (≥768):  left 1 (icons only)    | center 11 | right 0  ← right sidebar vanishes second
+        <md:         left 1 (icons only)    | center 11 | right 0
+      */}
+      <div className="grid grid-cols-12 max-w-[1280px] mx-auto">
+        {/* ── Left sidebar ── */}
+        <div className="col-span-1 xl:col-span-3 pt-1 flex justify-center xl:justify-end pr-0 xl:pr-4 relative sticky top-0 h-screen">
           <div>
             <Link href="/">
               <div className="text-2xl h-fit w-fit hover:bg-gray-800 rounded-full p-4 cursor-pointer transition-all">
                 <SiBuzzfeed />
               </div>
             </Link>
-            <div className="mt-1 text-xl pr-4">
+            <div className="mt-1 text-xl">
               <ul>
                 {sidebarMenuItems.map((item) => {
                   const isActive =
@@ -99,12 +107,12 @@ const BuzzLayout: React.FC<BuzzLayoutProps> = (props) => {
                   return (
                     <li key={item.title}>
                       <Link
-                        className="flex justify-start items-center gap-4 hover:bg-gray-800 rounded-full px-3 py-3 w-fit cursor-pointer mt-2"
+                        className="flex justify-center xl:justify-start items-center gap-4 hover:bg-gray-800 rounded-full px-3 py-3 w-fit cursor-pointer mt-2"
                         href={item.link}
                       >
-                        <span className=" text-3xl">{item.icon}</span>
+                        <span className="text-3xl">{item.icon}</span>
                         <span
-                          className={`hidden sm:inline ${
+                          className={`hidden xl:inline ${
                             isActive ? "font-bold" : ""
                           }`}
                         >
@@ -117,12 +125,12 @@ const BuzzLayout: React.FC<BuzzLayoutProps> = (props) => {
               </ul>
               <div className="mt-5 px-3">
                 <Link href="/">
-                  <button className="hidden sm:block bg-[#1d9bf0] font-semibold text-lg py-2 px-4 rounded-full w-full">
+                  <button className="hidden xl:block bg-[#1d9bf0] font-semibold text-lg py-2 px-4 rounded-full w-full">
                     Buzz
                   </button>
                 </Link>
                 <Link href="/">
-                  <button className="block sm:hidden bg-[#1d9bf0] font-semibold text-lg py-2 px-4 rounded-full w-full">
+                  <button className="block xl:hidden bg-[#1d9bf0] font-semibold text-lg p-3 rounded-full">
                     <SiBuzzfeed />
                   </button>
                 </Link>
@@ -131,27 +139,31 @@ const BuzzLayout: React.FC<BuzzLayoutProps> = (props) => {
           </div>
           {user && (
             <div className="absolute bottom-5 flex gap-2 items-center bg-slate-800 px-3 py-2 rounded-full">
-              {user && user.profileImageURL && (
+              {user.profileImageURL && (
                 <Image
                   className="rounded-full"
-                  src={user?.profileImageURL}
+                  src={user.profileImageURL}
                   alt="user-image"
                   height={50}
                   width={50}
                 />
               )}
-              <div className="hidden sm:block min-w-[225px]">
-                <h3 className="text-base font-semibold whitespace-nowrap overflow-hidden text-ellipsis">
+              <div className="hidden xl:block">
+                <h3 className="text-base font-semibold whitespace-nowrap overflow-hidden text-ellipsis max-w-[180px]">
                   {user.firstName} {user.lastName}
                 </h3>
               </div>
             </div>
           )}
         </div>
-        <div className="col-span-10 sm:col-span-7 border-r-[1px] border-l-[1px] min-h-screen border-gray-600">
+
+        {/* ── Center feed ── */}
+        <div className="col-span-11 lg:col-span-8 xl:col-span-6 border-r-[1px] border-l-[1px] min-h-screen border-gray-600">
           {props.children}
         </div>
-        <div className="col-span-0 sm:col-span-3 p-5 sticky top-0 h-screen overflow-y-auto hidden sm:block">
+
+        {/* ── Right sidebar ── */}
+        <div className="hidden lg:block lg:col-span-3 p-5 sticky top-0 h-screen overflow-y-auto">
           {!user ? (
             <div className="p-5 bg-slate-700 rounded-lg">
               <h1 className="my-2 text-2xl">New to Buzz?</h1>
