@@ -8,6 +8,7 @@ describe("JWTService", () => {
     email: "test@example.com",
     firstName: "Test",
     lastName: "User",
+    username: "test-user-user",
     profileImageURL: "https://example.com/image.png",
     createdAt: new Date(),
     updatedAt: new Date(),

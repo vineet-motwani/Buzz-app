@@ -22,6 +22,17 @@ interface GoogleTokenResult {
   typ?: string;
 }
 
+function generateUsername(
+  firstName: string,
+  lastName: string | undefined,
+  id: string
+): string {
+  const first = firstName.toLowerCase().replace(/[^a-z0-9]/g, "");
+  const last = (lastName || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const suffix = id.substring(0, 4);
+  return last ? `${first}-${last}-${suffix}` : `${first}-${suffix}`;
+}
+
 class UserService {
   public static async verifyGoogleAuthToken(token: string) {
     const googleToken = token;
@@ -40,13 +51,23 @@ class UserService {
     });
 
     if (!user) {
-      await prismaClient.user.create({
+      const newUser = await prismaClient.user.create({
         data: {
           email: data.email,
           firstName: data.given_name,
           lastName: data.family_name,
           profileImageURL: data.picture,
         },
+      });
+      // Generate and set username using the auto-generated CUID
+      const username = generateUsername(
+        data.given_name,
+        data.family_name,
+        newUser.id
+      );
+      await prismaClient.user.update({
+        where: { id: newUser.id },
+        data: { username },
       });
     }
 
@@ -63,6 +84,20 @@ class UserService {
 
   public static getUserById(id: string) {
     return prismaClient.user.findUnique({ where: { id } });
+  }
+
+  public static getUserByUsername(username: string) {
+    return prismaClient.user.findUnique({ where: { username } });
+  }
+
+  public static updateUserProfile(
+    userId: string,
+    data: { firstName?: string; lastName?: string; profileImageURL?: string }
+  ) {
+    return prismaClient.user.update({
+      where: { id: userId },
+      data,
+    });
   }
 
   public static followUser(from: string, to: string) {

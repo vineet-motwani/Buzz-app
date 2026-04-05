@@ -3,5 +3,6 @@ export const queries = `#graphql
     getCurrentUser: User
 
     getUserById(id: ID!): User
-    getUserByName(name: String!): User
+    getUserByUsername(username: String!): User
+    getSignedURLForProfileImage(imageName: String!, imageType: String!): String
 `;

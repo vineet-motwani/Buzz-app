@@ -11,10 +11,17 @@ export const types = `#graphql
         createdAt: String!
     }
 
+    input UpdateUserProfileData {
+        firstName: String
+        lastName: String
+        profileImageURL: String
+    }
+
     type User {
         id: ID!
         firstName: String!
         lastName: String
+        username: String
         email: String!
         profileImageURL: String
 
