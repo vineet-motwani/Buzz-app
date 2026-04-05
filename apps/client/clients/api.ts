@@ -2,7 +2,12 @@ import { GraphQLClient } from 'graphql-request'
 
 const isClient = typeof window !== 'undefined';
 
-export const graphqlClient = new GraphQLClient(process.env.NEXT_PUBLIC_API_URL as string, {
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+if (!apiUrl) {
+  throw new Error('NEXT_PUBLIC_API_URL environment variable is not set');
+}
+
+export const graphqlClient = new GraphQLClient(apiUrl, {
     headers: () => ({
         Authorization: isClient ? `Bearer ${window.localStorage.getItem("__buzz_token")}`
         : "",

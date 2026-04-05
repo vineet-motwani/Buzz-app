@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useMemo } from "react";
 import FeedCard from "@/components/FeedCard";
 import { useGetAllBuzzs } from "@/hooks/buzz";
 import { Buzz } from "@/gql/graphql";
@@ -6,12 +6,10 @@ import BuzzLayout from "@/components/FeedCard/Layout/BuzzLayout";
 
 export default function Explore() {
   const { buzzs = [] } = useGetAllBuzzs();
-  const [randomBuzzs, setRandomBuzzs] = useState<Buzz[]>([]);
 
-  useEffect(() => {
-    if (buzzs) {
-      setRandomBuzzs([...buzzs].sort(() => Math.random() - 0.5) as Buzz[]);
-    }
+  const randomBuzzs = useMemo(() => {
+    if (!buzzs) return [];
+    return [...buzzs].sort(() => Math.random() - 0.5) as Buzz[];
   }, [buzzs]);
 
   return (

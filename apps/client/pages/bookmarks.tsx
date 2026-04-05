@@ -2,6 +2,7 @@ import React from "react";
 import BuzzLayout from "@/components/FeedCard/Layout/BuzzLayout";
 import { useCurrentUser } from "@/hooks/user";
 import FeedCard from "@/components/FeedCard";
+import { Buzz } from "@/gql/graphql";
 
 export default function Bookmarks() {
   const { user, isLoading } = useCurrentUser();
@@ -27,7 +28,7 @@ export default function Bookmarks() {
             user.bookmarks.map(
               (bookmark) =>
                 bookmark?.buzz && (
-                  <FeedCard key={bookmark.id} data={bookmark.buzz as any} />
+                  <FeedCard key={bookmark.id} data={bookmark.buzz as Buzz} />
                 )
             )
           )}

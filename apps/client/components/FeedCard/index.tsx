@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { AiOutlineHeart, AiFillHeart } from 'react-icons/ai';
@@ -28,9 +28,13 @@ const bookmarkBuzzMutation = graphql(`
 const FeedCard:React.FC<FeedCardProps> = (props) => {
     const { data } = props;
     const queryClient = useQueryClient();
+    const [isLiking, setIsLiking] = useState(false);
+    const [isBookmarking, setIsBookmarking] = useState(false);
 
     const handleLike = useCallback(async (e: React.MouseEvent) => {
         e.stopPropagation();
+        if (isLiking) return;
+        setIsLiking(true);
         try {
             const { likeBuzz } = await graphqlClient.request(likeBuzzMutation, { buzzId: data.id });
             if (likeBuzz) {
@@ -42,11 +46,15 @@ const FeedCard:React.FC<FeedCardProps> = (props) => {
             queryClient.invalidateQueries({ queryKey: ["current-user"] });
         } catch (err) {
             toast.error("Failed to update like");
+        } finally {
+            setIsLiking(false);
         }
-    }, [data.id, queryClient]);
+    }, [data.id, queryClient, isLiking]);
 
     const handleBookmark = useCallback(async (e: React.MouseEvent) => {
         e.stopPropagation();
+        if (isBookmarking) return;
+        setIsBookmarking(true);
         try {
             const { bookmarkBuzz } = await graphqlClient.request(bookmarkBuzzMutation, { buzzId: data.id });
             if (bookmarkBuzz) {
@@ -58,19 +66,21 @@ const FeedCard:React.FC<FeedCardProps> = (props) => {
             queryClient.invalidateQueries({ queryKey: ["current-user"] });
         } catch (err) {
             toast.error("Failed to update bookmark");
+        } finally {
+            setIsBookmarking(false);
         }
-    }, [data.id, queryClient]);
+    }, [data.id, queryClient, isBookmarking]);
 
     return <div className="border border-r-0 border-l-0 border-b-0 border-gray-600 p-5 hover:bg-slate-800 transition-all cursor-pointer">
         <div className="grid grid-cols-12 gap-3">
             <div className="col-span-1">
                 {data.author?.profileImageURL && (
                     <Link href={`/${data.author.username}`}>
-                        <Image 
-                            src={data.author?.profileImageURL} 
-                            height={50} 
-                            width={50} 
-                            alt='user profile image' 
+                        <Image
+                            src={data.author?.profileImageURL}
+                            height={50}
+                            width={50}
+                            alt='user profile image'
                             className="rounded-full"
                         />
                     </Link>
@@ -95,12 +105,22 @@ const FeedCard:React.FC<FeedCardProps> = (props) => {
                     />
                 )}
                 <div className="flex justify-between mt-3 text-xl items-center w-[80%]">
-                    <div onClick={handleLike} className={`p-2 rounded-full cursor-pointer transition-all hover:bg-pink-900/20 ${data.hasLiked ? 'text-red-500' : 'hover:text-pink-500'}`}>
+                    <button
+                        onClick={handleLike}
+                        disabled={isLiking}
+                        aria-label={data.hasLiked ? "Unlike" : "Like"}
+                        className={`p-2 rounded-full cursor-pointer transition-all hover:bg-pink-900/20 disabled:opacity-50 ${data.hasLiked ? 'text-red-500' : 'hover:text-pink-500'}`}
+                    >
                         {data.hasLiked ? <AiFillHeart/> : <AiOutlineHeart/>}
-                    </div>
-                    <div onClick={handleBookmark} className={`p-2 rounded-full cursor-pointer transition-all hover:bg-blue-900/20 ${data.hasBookmarked ? 'text-[#1d9bf0]' : 'hover:text-blue-500'}`}>
+                    </button>
+                    <button
+                        onClick={handleBookmark}
+                        disabled={isBookmarking}
+                        aria-label={data.hasBookmarked ? "Remove bookmark" : "Bookmark"}
+                        className={`p-2 rounded-full cursor-pointer transition-all hover:bg-blue-900/20 disabled:opacity-50 ${data.hasBookmarked ? 'text-[#1d9bf0]' : 'hover:text-blue-500'}`}
+                    >
                         {data.hasBookmarked ? <BsBookmarkFill/> : <BsBookmark/>}
-                    </div>
+                    </button>
                 </div>
             </div>
         </div>

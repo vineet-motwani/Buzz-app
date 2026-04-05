@@ -112,12 +112,17 @@ export default function Home() {
         }
       }
 
-      const { getSignedURLForBuzz } = await graphqlClient.request(
-        getSignedURLForBuzzQuery,
-        { imageName: fileToUpload.name, imageType: fileToUpload.type }
-      );
+      try {
+        const { getSignedURLForBuzz } = await graphqlClient.request(
+          getSignedURLForBuzzQuery,
+          { imageName: fileToUpload.name, imageType: fileToUpload.type }
+        );
 
-      if (getSignedURLForBuzz) {
+        if (!getSignedURLForBuzz) {
+          toast.error("Failed to get upload URL");
+          return;
+        }
+
         toast.loading("Uploading...", { id: "2" });
         await axios.put(getSignedURLForBuzz, fileToUpload, {
           headers: { "Content-Type": fileToUpload.type },
@@ -125,6 +130,9 @@ export default function Home() {
         toast.success("Upload Complete!", { id: "2" });
         const url = new URL(getSignedURLForBuzz);
         setImageURL(`${url.origin}${url.pathname}`);
+      } catch (err) {
+        toast.dismiss("2");
+        toast.error("Image upload failed. Please try again.");
       }
     };
   }, []);
@@ -139,6 +147,10 @@ export default function Home() {
 
   // ── Buzz submission ──
   const handleCreateBuzz = useCallback(async () => {
+    if (!content.trim() && !imageURL) {
+      toast.error("Please add some content or an image");
+      return;
+    }
     await mutateAsync({ content, imageURL });
     setContent("");
     setImageURL("");
