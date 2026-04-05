@@ -65,7 +65,7 @@ const FeedCard:React.FC<FeedCardProps> = (props) => {
         <div className="grid grid-cols-12 gap-3">
             <div className="col-span-1">
                 {data.author?.profileImageURL && (
-                    <Link href={`/${data.author.firstName}-${data.author.lastName}`}> 
+                    <Link href={`/${data.author.username}`}>
                         <Image 
                             src={data.author?.profileImageURL} 
                             height={50} 
@@ -78,7 +78,7 @@ const FeedCard:React.FC<FeedCardProps> = (props) => {
             </div>
             <div className="col-span-11">
                 <h5>
-                    <Link href={`/${data.author?.firstName}-${data.author?.lastName}`}>
+                    <Link href={`/${data.author?.username}`}>
                         <span className="font-semibold cursor-pointer hover:underline">{data.author?.firstName} {data.author?.lastName}</span>
                     </Link>
                 </h5>

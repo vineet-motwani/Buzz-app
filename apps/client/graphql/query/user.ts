@@ -14,22 +14,26 @@ export const getCurrentUserQuery = graphql(`
       email
       firstName
       lastName
+      username
       recommendedUsers {
         id
         firstName
         lastName
+        username
         profileImageURL
       }
       followers {
         id
         firstName
         lastName
+        username
         profileImageURL
       }
       following {
         id
         firstName
         lastName
+        username
         profileImageURL
       }
       buzzs {
@@ -40,6 +44,7 @@ export const getCurrentUserQuery = graphql(`
           id
           firstName
           lastName
+          username
           profileImageURL
         }
         hasLiked
@@ -61,6 +66,7 @@ export const getCurrentUserQuery = graphql(`
             id
             firstName
             lastName
+            username
             profileImageURL
           }
           hasLiked
@@ -77,17 +83,20 @@ export const getUserByIdQuery = graphql(`
       id
       firstName
       lastName
+      username
       profileImageURL
       followers {
         id
         firstName
         lastName
+        username
         profileImageURL
       }
       following {
         id
         firstName
         lastName
+        username
         profileImageURL
       }
       buzzs {
@@ -98,6 +107,7 @@ export const getUserByIdQuery = graphql(`
           id
           firstName
           lastName
+          username
           profileImageURL
         }
         hasLiked
@@ -107,23 +117,26 @@ export const getUserByIdQuery = graphql(`
   }
 `);
 
-export const getUserByNameQuery = graphql(`
-  query GetUserByName($name: String!) {
-    getUserByName(name: $name) {
+export const getUserByUsernameQuery = graphql(`
+  query GetUserByUsername($username: String!) {
+    getUserByUsername(username: $username) {
       id
       firstName
       lastName
+      username
       profileImageURL
       followers {
         id
         firstName
         lastName
+        username
         profileImageURL
       }
       following {
         id
         firstName
         lastName
+        username
         profileImageURL
       }
       buzzs {
@@ -134,11 +147,18 @@ export const getUserByNameQuery = graphql(`
           id
           firstName
           lastName
+          username
           profileImageURL
         }
         hasLiked
         hasBookmarked
       }
     }
+  }
+`);
+
+export const getSignedURLForProfileImageQuery = graphql(`
+  query GetSignedURLForProfileImage($imageName: String!, $imageType: String!) {
+    getSignedURLForProfileImage(imageName: $imageName, imageType: $imageType)
   }
 `);

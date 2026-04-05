@@ -2,21 +2,19 @@ import { useRouter } from "next/router";
 import BuzzLayout from "@/components/FeedCard/Layout/BuzzLayout";
 import Image from "next/image";
 import { BsArrowLeftShort } from "react-icons/bs";
-import { useCurrentUser, useGetUserByName, useFollowUser, useUnfollowUser } from "@/hooks/user";
+import Link from "next/link";
+import { useCurrentUser, useGetUserByUsername, useFollowUser, useUnfollowUser } from "@/hooks/user";
 import FeedCard from "@/components/FeedCard";
-import { Buzz, User } from "@/gql/graphql";
+import { Buzz } from "@/gql/graphql";
 import { useCallback, useMemo } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 
 const UserProfilePage = () => {
   const router = useRouter();
-  const { name } = router.query; // Get the name from the URL
+  const { username } = router.query;
   const { user: currentUser } = useCurrentUser();
-  const { user, isLoading } = useGetUserByName(name as string);
+  const { user, isLoading } = useGetUserByUsername(username as string);
   const { mutate: followUser } = useFollowUser();
   const { mutate: unfollowUser } = useUnfollowUser();
-  
-  const queryClient = useQueryClient();
 
   const amIFollowing = useMemo(() => {
     if (!user) return false;
@@ -37,16 +35,22 @@ const UserProfilePage = () => {
     unfollowUser(user.id);
   }, [user?.id, unfollowUser]);
 
-  const handleBack = useCallback(() => {
-    router.push("/");
-  }, [router]);
+  const isOwnProfile = currentUser?.id === user?.id;
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <BuzzLayout>
+        <div className="p-10 text-center text-gray-400">Loading...</div>
+      </BuzzLayout>
+    );
   }
 
   if (!user && !isLoading) {
-    return <div>User not found.</div>;
+    return (
+      <BuzzLayout>
+        <div className="p-10 text-center text-gray-400">User not found.</div>
+      </BuzzLayout>
+    );
   }
 
   return (
@@ -54,9 +58,9 @@ const UserProfilePage = () => {
       <BuzzLayout>
         <div>
           <nav className="flex items-center gap-3 py-3 px-3">
-            <BsArrowLeftShort 
-              className="text-4xl cursor-pointer" 
-              onClick={handleBack} 
+            <BsArrowLeftShort
+              className="text-4xl cursor-pointer"
+              onClick={() => router.push("/")}
             />
             <div>
               <h1 className="text-2xl font-bold">
@@ -80,12 +84,20 @@ const UserProfilePage = () => {
             <h1 className="text-2xl font-bold mt-5">
               {user?.firstName} {user?.lastName}
             </h1>
-            <div className="flex justify-between items-center">
-              <div className="flex gap-4 mt-2 text-sm text-gray-400">
+            <p className="text-sm text-gray-500">@{user?.username}</p>
+            <div className="flex justify-between items-center mt-2">
+              <div className="flex gap-4 text-sm text-gray-400">
                 <span>{user?.followers?.length} followers</span>
                 <span>{user?.following?.length} following</span>
               </div>
-              {currentUser?.id !== user?.id && (
+              {isOwnProfile ? (
+                <Link
+                  href="/edit-profile"
+                  className="border border-gray-500 text-white px-4 py-1 rounded-full text-sm hover:bg-gray-800 transition-colors"
+                >
+                  Edit profile
+                </Link>
+              ) : (
                 <>
                   {amIFollowing ? (
                     <button
@@ -116,6 +128,5 @@ const UserProfilePage = () => {
     </div>
   );
 };
-
 
 export default UserProfilePage;

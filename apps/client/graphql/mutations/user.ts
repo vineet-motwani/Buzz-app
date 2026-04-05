@@ -13,3 +13,15 @@ export const unfollowUserMutation = graphql(`
     unfollowUser(to: $to)
   }
 `);
+
+export const updateUserProfileMutation = graphql(`
+  #graphql
+  mutation UpdateUserProfile($payload: UpdateUserProfileData!) {
+    updateUserProfile(payload: $payload) {
+      id
+      firstName
+      lastName
+      profileImageURL
+    }
+  }
+`);

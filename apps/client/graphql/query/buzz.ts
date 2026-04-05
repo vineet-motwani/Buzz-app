@@ -10,6 +10,7 @@ export const getAllBuzzsQuery = graphql(`
                 id
                 firstName
                 lastName
+                username
                 profileImageURL
             }
             hasLiked

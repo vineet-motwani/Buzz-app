@@ -53,10 +53,10 @@ const BuzzLayout: React.FC<BuzzLayoutProps> = (props) => {
       {
         title: "Profile",
         icon: <BiUser />,
-        link: user?.id ? `/${user.firstName}-${user.lastName}` : "/",
+        link: user?.username ? `/${user.username}` : "/",
       },
     ],
-    [user?.id, user?.firstName, user?.lastName]
+    [user?.id, user?.username]
   );
 
   const handleLoginWithGoogle = useCallback(
@@ -188,7 +188,7 @@ const BuzzLayout: React.FC<BuzzLayoutProps> = (props) => {
                       {el?.firstName} {el?.lastName}
                     </div>
                     <Link
-                      href={`/${el?.id}`}
+                      href={`/${el?.username}`}
                       className="bg-white text-black text-sm px-5 py-1 w-full rounded-lg"
                     >
                       View
