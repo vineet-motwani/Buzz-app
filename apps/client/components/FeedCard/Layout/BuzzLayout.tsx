@@ -64,18 +64,23 @@ const BuzzLayout: React.FC<BuzzLayoutProps> = (props) => {
       const googleToken = cred.credential;
       if (!googleToken) return toast.error(`Google token not found`);
 
-      const { verifyGoogleToken } = await graphqlClient.request(
-        verifyUserGoogleTokenQuery,
-        { token: googleToken }
-      );
+      try {
+        const { verifyGoogleToken } = await graphqlClient.request(
+          verifyUserGoogleTokenQuery,
+          { token: googleToken }
+        );
 
-      toast.success("Verified Success");
-      console.log(verifyGoogleToken);
+        if (!verifyGoogleToken) {
+          toast.error("Authentication failed, please logout and try again.");
+          return;
+        }
 
-      if (verifyGoogleToken)
         window.localStorage.setItem("__buzz_token", verifyGoogleToken);
-
-      await queryClient.invalidateQueries({ queryKey: ["current-user"] });
+        toast.success("Verified Success");
+        await queryClient.invalidateQueries({ queryKey: ["current-user"] });
+      } catch (error) {
+        toast.error("Login failed. Please try again.");
+      }
     },
     [queryClient]
   );
