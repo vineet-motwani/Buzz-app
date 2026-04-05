@@ -6,3 +6,10 @@ build/
 dump.rdb
 .aider*
 !.aiderignore
+
+# Terraform
+*.tfvars
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
