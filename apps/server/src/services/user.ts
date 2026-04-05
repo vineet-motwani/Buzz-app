@@ -35,51 +35,55 @@ function generateUsername(
 
 class UserService {
   public static async verifyGoogleAuthToken(token: string) {
-    const googleToken = token;
     const googleOauthURL = new URL("https://oauth2.googleapis.com/tokeninfo");
-    googleOauthURL.searchParams.set("id_token", googleToken);
+    googleOauthURL.searchParams.set("id_token", token);
 
-    const { data } = await axios.get<GoogleTokenResult>(
-      googleOauthURL.toString(),
-      {
-        responseType: "json",
+    let data: GoogleTokenResult;
+    try {
+      const response = await axios.get<GoogleTokenResult>(
+        googleOauthURL.toString(),
+        { responseType: "json", timeout: 5000 }
+      );
+      data = response.data;
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        throw new Error("Invalid or expired Google token");
       }
-    );
+      throw new Error("Google authentication failed");
+    }
 
-    const user = await prismaClient.user.findUnique({
+    if (data.email_verified !== "true") {
+      throw new Error("Google email is not verified");
+    }
+
+    let user = await prismaClient.user.findUnique({
       where: { email: data.email },
     });
 
     if (!user) {
-      const newUser = await prismaClient.user.create({
-        data: {
-          email: data.email,
-          firstName: data.given_name,
-          lastName: data.family_name,
-          profileImageURL: data.picture,
-        },
-      });
-      // Generate and set username using the auto-generated CUID
-      const username = generateUsername(
-        data.given_name,
-        data.family_name,
-        newUser.id
-      );
-      await prismaClient.user.update({
-        where: { id: newUser.id },
-        data: { username },
+      user = await prismaClient.$transaction(async (tx) => {
+        const created = await tx.user.create({
+          data: {
+            email: data.email,
+            firstName: data.given_name,
+            lastName: data.family_name,
+            profileImageURL: data.picture,
+          },
+        });
+        return tx.user.update({
+          where: { id: created.id },
+          data: {
+            username: generateUsername(
+              data.given_name,
+              data.family_name,
+              created.id
+            ),
+          },
+        });
       });
     }
 
-    const userInDb = await prismaClient.user.findUnique({
-      where: { email: data.email },
-    });
-
-    if (!userInDb) throw new Error("User with email not found");
-
-    const userToken = JWTService.generateTokenForUser(userInDb);
-
-    return userToken;
+    return JWTService.generateTokenForUser(user);
   }
 
   public static getUserById(id: string) {

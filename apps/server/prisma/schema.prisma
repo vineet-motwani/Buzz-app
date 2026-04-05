@@ -35,28 +35,32 @@ model User {
 
 model Notification {
   id String @id @default(cuid())
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String
   content String
   createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 model Follows {
-  follower   User   @relation("follower", fields: [followerId], references: [id])
+  follower   User   @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
   followerId String
 
-  following   User   @relation("following", fields: [followingId], references: [id])
+  following   User   @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
   followingId String
 
   @@id([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
 }
 
 model Buzz {
   id String @id @default(cuid())
   content String
-  imageURL String? 
-  
-  author User @relation(fields: [authorId], references: [id])
+  imageURL String?
+
+  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
   authorId String
 
   likes Like[]
@@ -64,13 +68,16 @@ model Buzz {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([authorId])
+  @@index([createdAt])
 }
 
 model Like {
   id String @id @default(cuid())
-  buzz Buzz @relation(fields: [buzzId], references: [id])
+  buzz Buzz @relation(fields: [buzzId], references: [id], onDelete: Cascade)
   buzzId String
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String
   createdAt DateTime @default(now())
 
@@ -79,11 +86,12 @@ model Like {
 
 model Bookmark {
   id String @id @default(cuid())
-  buzz Buzz @relation(fields: [buzzId], references: [id])
+  buzz Buzz @relation(fields: [buzzId], references: [id], onDelete: Cascade)
   buzzId String
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String
   createdAt DateTime @default(now())
 
   @@unique([buzzId, userId])
+  @@index([userId])
 }

@@ -67,8 +67,10 @@ export async function initServer() {
            */
           if (user?.id) {
             const rateLimitKey = `RATE_LIMIT:${user.id}`;
-            await redisClient.incr(rateLimitKey);
-            await redisClient.expire(rateLimitKey, 60);
+            const count = await redisClient.incr(rateLimitKey);
+            if (count === 1) await redisClient.expire(rateLimitKey, 60);
+            if (count > 100)
+              throw new Error("Rate limit exceeded. Try again in a minute.");
           }
 
           return { user };
