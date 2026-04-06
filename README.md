@@ -1,6 +1,6 @@
 # Buzz
 
-A Twitter-like social media platform built with Next.js, GraphQL, and PostgreSQL.
+A Social media platform built just for techies!
 
 ## Tech Stack
 
