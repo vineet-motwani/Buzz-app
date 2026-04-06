@@ -75,7 +75,7 @@ const BuzzLayout: React.FC<BuzzLayoutProps> = (props) => {
           return;
         }
 
-        window.localStorage.setItem("__buzz_token", verifyGoogleToken);
+        // Token is now stored as httpOnly cookie by the server
         toast.success("Verified Success");
         await queryClient.refetchQueries({ queryKey: ["current-user"] });
       } catch (error) {

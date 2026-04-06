@@ -1,6 +1,7 @@
 import express from 'express';
 import bodyParser  from 'body-parser';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
 
@@ -14,6 +15,7 @@ export async function initServer() {
   const app = express();
 
   app.use(bodyParser.json());
+  app.use(cookieParser());
   app.use(cors({
     origin: ['http://localhost:3000',"https://buzz.vineet-motwani.cv"],
     credentials: true,
@@ -56,8 +58,9 @@ export async function initServer() {
 
   app.use('/graphql', expressMiddleware(graphqlServer, {
         context: async ({req, res}) => {
-          const userToken = req.headers.authorization?.split('Bearer ')[1];
-          const user = userToken ? JWTService.decodeToken(userToken) : undefined;
+          const userToken = req.cookies?.__buzz_token
+            || req.headers.authorization?.split('Bearer ')[1];
+          const user = userToken ? JWTService.decodeToken(userToken) ?? undefined : undefined;
 
           /**
            * REDIS RATE LIMITING (Claim 3):
@@ -73,7 +76,7 @@ export async function initServer() {
               throw new Error("Rate limit exceeded. Try again in a minute.");
           }
 
-          return { user };
+          return { user, res };
         }
   }));
 

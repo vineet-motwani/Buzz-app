@@ -15,8 +15,15 @@ function sanitizeFileName(name: string): string {
 }
 
 const queries = {
-  verifyGoogleToken: async (parent: any, { token }: { token: string }) => {
+  verifyGoogleToken: async (parent: any, { token }: { token: string }, ctx: GraphqlContext) => {
     const resultToken = await UserService.verifyGoogleAuthToken(token);
+    ctx.res.cookie("__buzz_token", resultToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV !== "development",
+      sameSite: process.env.NODE_ENV === "development" ? "lax" : "none",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days, matching JWT expiry
+      path: "/",
+    });
     return resultToken;
   },
   getCurrentUser: async (parent: any, args: any, ctx: GraphqlContext) => {
@@ -224,6 +231,15 @@ const mutations = {
     }
 
     return UserService.updateUserProfile(ctx.user.id, payload);
+  },
+  logout: async (_: any, __: any, ctx: GraphqlContext) => {
+    ctx.res.clearCookie("__buzz_token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV !== "development",
+      sameSite: process.env.NODE_ENV === "development" ? "lax" : "none",
+      path: "/",
+    });
+    return true;
   },
 };
 
