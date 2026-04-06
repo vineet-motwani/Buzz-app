@@ -76,11 +76,14 @@ const BuzzLayout: React.FC<BuzzLayoutProps> = (props) => {
         }
 
         // Token is now stored as httpOnly cookie by the server.
-        // Brief delay lets the browser process the Set-Cookie header
-        // before we refetch getCurrentUser (which needs the cookie).
+        // For the immediate refetch, pass the JWT as a header since
+        // the browser may not have processed the Set-Cookie yet
+        // (cross-origin cookie timing issue in production).
         toast.success("Verified Success");
-        await new Promise((r) => setTimeout(r, 150));
+        graphqlClient.setHeader("Authorization", `Bearer ${verifyGoogleToken}`);
         await queryClient.refetchQueries({ queryKey: ["current-user"] });
+        // Clear the temp header — subsequent requests use the httpOnly cookie
+        graphqlClient.setHeader("Authorization", "");
       } catch (error) {
         toast.error("Login failed. Please try again.");
       }
