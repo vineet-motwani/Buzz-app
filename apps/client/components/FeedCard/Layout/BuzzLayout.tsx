@@ -75,8 +75,11 @@ const BuzzLayout: React.FC<BuzzLayoutProps> = (props) => {
           return;
         }
 
-        // Token is now stored as httpOnly cookie by the server
+        // Token is now stored as httpOnly cookie by the server.
+        // Brief delay lets the browser process the Set-Cookie header
+        // before we refetch getCurrentUser (which needs the cookie).
         toast.success("Verified Success");
+        await new Promise((r) => setTimeout(r, 150));
         await queryClient.refetchQueries({ queryKey: ["current-user"] });
       } catch (error) {
         toast.error("Login failed. Please try again.");
