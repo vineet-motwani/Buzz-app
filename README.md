@@ -19,8 +19,7 @@ A Social media platform built just for techies!
 - Image uploads with client-side compression
 - Follow/unfollow users with friend-of-friend recommendations
 - Notifications on likes
-- Emoji picker + WhatsApp-style shortcode support (`:fire:` → 🔥)
-- Responsive Twitter-style layout
+- Responsive layout
 - Redis-powered rate limiting and caching
 
 ## Project Structure
@@ -29,7 +28,7 @@ A Social media platform built just for techies!
 apps/
   client/     Next.js frontend (deployed on Vercel)
   server/     Express + Apollo GraphQL backend (deployed on GCP)
-  terraform/  Infrastructure as code (GCP Free Tier)
+  terraform/  Infrastructure as code (GCP)
 ```
 
 ## Local Development
@@ -48,15 +47,3 @@ cp .env.example .env  # fill in values
 npm install
 npm run dev            # runs on :3000
 ```
-
-## Deployment
-
-See [HOSTING.md](./HOSTING.md) for full deployment instructions.
-
-- **Frontend:** Vercel (auto-deploys on push to `main`)
-- **Backend:** GCP e2-micro via Terraform + Caddy reverse proxy
-- **Live at:** [buzz.vineet-motwani.cv](https://buzz.vineet-motwani.cv)
-
-## License
-
-MIT
