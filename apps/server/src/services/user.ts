@@ -29,7 +29,9 @@ function generateUsername(
 ): string {
   const first = firstName.toLowerCase().replace(/[^a-z0-9]/g, "");
   const last = (lastName || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-  const suffix = id.substring(0, 4);
+  // Use the last 8 chars of the ID (random part) instead of the first 4
+  // (timestamp prefix) to avoid collisions for users created at similar times
+  const suffix = id.slice(-8);
   return last ? `${first}-${last}-${suffix}` : `${first}-${suffix}`;
 }
 
