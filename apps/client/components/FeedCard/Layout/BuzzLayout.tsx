@@ -77,7 +77,7 @@ const BuzzLayout: React.FC<BuzzLayoutProps> = (props) => {
 
         window.localStorage.setItem("__buzz_token", verifyGoogleToken);
         toast.success("Verified Success");
-        await queryClient.invalidateQueries({ queryKey: ["current-user"] });
+        await queryClient.refetchQueries({ queryKey: ["current-user"] });
       } catch (error) {
         toast.error("Login failed. Please try again.");
       }
